@@ -1,0 +1,190 @@
+@import './styles/fonts.css';
+@import './styles/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior: none;
+  }
+
+  /* One focus treatment, token-driven, applied everywhere. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-focus/70 ring-offset-2 ring-offset-canvas;
+  }
+
+  /* ...except text fields. A ring drawn around the input itself boxes in the
+     text inside a surface that is already a box. Fields hand their focus state
+     to their container, which lights up as a whole — see Composer. */
+  input:focus-visible,
+  textarea:focus-visible {
+    @apply ring-0 ring-offset-0;
+  }
+
+  textarea {
+    @apply resize-none;
+  }
+}
+
+@layer utilities {
+  /* A theme's own ink/accent tokens, swept diagonally — the stand-in `Figure`
+     reaches for when a theme's reference image is a warped, abstract band
+     rather than a photo. Built from the same two tokens a design-system swap
+     would already replace, so it re-skins along with everything else. */
+  .bg-figure-gradient {
+    background-image: linear-gradient(
+      125deg,
+      rgb(var(--color-accent)) 0%,
+      rgb(var(--color-ink)) 55%,
+      rgb(var(--color-accent-hover)) 100%
+    );
+  }
+}
+
+@layer utilities {
+  /* Thin, unobtrusive scrollbars inside the chat + preview scroll regions. */
+  .scroll-slim {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--color-line-strong)) transparent;
+  }
+  .scroll-slim::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scroll-slim::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--color-line-strong));
+    border-radius: var(--radius-pill);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  .scroll-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Shimmer for sections currently being generated. Token-driven, so it re-skins
+   with the palette; the gradient is a lightness sweep, not a colour of its own. */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* A highlight travelling through a line of text, for work that's still
+   happening — the text equivalent of the section shimmer below. Same
+   #1F1F1F the rest of the chat is pinned to, so the sweep reads as that
+   text lit up rather than a different colour of text. */
+@keyframes text-sweep {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@layer utilities {
+  .text-sweep {
+    background-image: linear-gradient(
+      100deg,
+      rgb(31 31 31 / 0.25) 40%,
+      rgb(31 31 31) 50%,
+      rgb(31 31 31 / 0.25) 60%
+    );
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: text-sweep 1.6s linear infinite;
+  }
+}
+
+@layer utilities {
+  .shimmer {
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--color-surface-sunken)) 0%,
+      rgb(var(--color-line)) 50%,
+      rgb(var(--color-surface-sunken)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Entry showcase marquee.
+ *
+ * One horizontal row, holding the item list twice, scrolled by `scrollLeft`
+ * — when the offset passes the halfway mark it's rolled back by exactly half,
+ * and because the second copy is identical the seam is invisible. A seamless
+ * loop that is also a real scroll position, which is what lets the arrows
+ * drive it (see ThemeShowcase.jsx).
+ *
+ * Position rather than transform on purpose: the ambient drift and the arrows
+ * then share one authority, so neither can fight the other mid-animation.
+ * ------------------------------------------------------------------------- */
+.showcase-scroller {
+  overflow-x: auto;
+  /* We animate scrollLeft frame by frame, so native smooth scrolling would be
+     a second animation competing for the same property. */
+  scroll-behavior: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.showcase-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* Cards dissolve at the left and right edges rather than being cut off. */
+.showcase-fade-x {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 6%,
+    black 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 6%,
+    black 94%,
+    transparent 100%
+  );
+}
+
+/* Respect the OS setting — Framer Motion reads this too. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* The blanket rule above would strobe the sweep rather than still it.
+     Drop the gradient entirely and hand the text its colour back. */
+  .text-sweep {
+    animation: none !important;
+    background-image: none;
+    color: #1f1f1f;
+    -webkit-text-fill-color: #1f1f1f;
+  }
+}

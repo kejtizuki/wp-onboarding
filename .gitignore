@@ -1,0 +1,7 @@
+node_modules
+build
+.DS_Store
+.env.local
+
+# Local env (BROWSER/SKIP_PREFLIGHT_CHECK); real keys live in .env.local
+.env

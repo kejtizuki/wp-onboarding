@@ -1,0 +1,32 @@
+{
+  "name": "wp-ai-onboarding-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "//homepage": "Relative asset paths. GitHub Pages serves from /<repo>/, not the domain root — absolute /static/... URLs would 404 and the fonts would silently fall back to Georgia. '.' works at any subpath, so this needs no repo name.",
+  "homepage": ".",
+  "dependencies": {
+    "framer-motion": "^11.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "prebuild": "node scripts/check-build-secrets.js",
+    "build": "react-scripts build",
+    "test": "react-scripts test"
+  },
+  "browserslist": {
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

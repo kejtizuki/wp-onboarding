@@ -1,0 +1,102 @@
+/* ============================================================================
+ * RECOLETA — the serif display face. Latinotype.
+ *
+ * All seven weights are declared, but a browser only downloads the files it
+ * actually needs to render text, so unused weights cost nothing. Reach for them
+ * with the normal Tailwind weight utilities on any `font-serif` element:
+ *
+ *   font-thin 100 · font-light 300 · font-normal 400 · font-medium 500
+ *   font-semibold 600 · font-bold 700 · font-black 900
+ *
+ * `font-display: swap` renders the fallback immediately and swaps Recoleta in
+ * when it lands — no invisible headline on first paint.
+ * ========================================================================== */
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('./fonts/Recoleta-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('./fonts/Recoleta-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('./fonts/Recoleta-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('./fonts/Recoleta-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('./fonts/Recoleta-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('./fonts/Recoleta-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Recoleta';
+  src: url('./fonts/Recoleta-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================================
+ * LASTIK FREE — artisanal's own display face, repointing `--font-serif` just
+ * for that theme (see artisanal.js's `tokens`). One weight only.
+ * ========================================================================== */
+
+@font-face {
+  font-family: 'Lastik Free';
+  src: url('./fonts/LastikFree-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================================
+ * SPACE GROTESK — editorial's own display face, repointing `--font-serif`
+ * just for that theme (see editorial.js's `tokens`). Open source (SIL OFL),
+ * self-hosted from the same Google Fonts file rather than a Google-hosted
+ * <link>, so it works offline and on GitHub Pages the same way Recoleta and
+ * Lastik Free do.
+ *
+ * One file, variable: it carries the whole 300–700 weight axis, so every
+ * Tailwind weight utility (font-light through font-bold) on a `font-serif`
+ * element just works, the same as the static per-weight faces above.
+ * ========================================================================== */
+
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('./fonts/SpaceGrotesk-Variable.woff2') format('woff2-variations');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
