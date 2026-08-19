@@ -28,9 +28,9 @@ export default function ResetConfirmDialog({ onConfirm, onCancel }) {
       style={{ borderRadius: 16, transformOrigin: 'top right' }}
       /* Sized to its own content, not to the column: the widest thing in it
          is the pair of buttons, so the card ends up exactly as wide as they
-         need and no wider. Anchored right, stopping short of the close icon,
-         so it reads as belonging to "Reset" above it. */
-      className="absolute right-10 top-1.5 z-10 w-fit max-w-[calc(100%-3.25rem)] overflow-hidden bg-surface shadow-raised"
+         need and no wider. Anchored to the same right inset as "Reset" above
+         it, so there's no band of empty card beside the label. */
+      className="absolute right-2 top-1.5 z-10 w-fit max-w-[calc(100%-1rem)] overflow-hidden bg-surface shadow-raised"
     >
       {/* pt clears the Reset link sitting on top of this box. */}
       <motion.div

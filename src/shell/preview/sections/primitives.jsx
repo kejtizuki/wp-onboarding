@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import cx from '../../../lib/cx';
 
 /**
@@ -21,25 +21,73 @@ import cx from '../../../lib/cx';
  * drops in a real picture when one exists, as NotesLab's cover eventually did.
  * `image` wins if both are set.
  */
-export function Figure({ ratio = '4/3', className, gradient = false, image }) {
+export function Figure({ ratio = '4/3', className, gradient = false, image, rounded = true }) {
   if (image) {
-    return (
-      <img
-        src={image}
-        alt=""
-        aria-hidden="true"
-        className={cx('w-full rounded-nested object-cover', className)}
-        style={{ aspectRatio: ratio }}
-      />
-    );
+    return <ImageFigure ratio={ratio} className={className} image={image} rounded={rounded} />;
   }
 
   return (
     <div
       aria-hidden
-      className={cx('w-full rounded-nested', gradient ? 'bg-figure-gradient' : 'bg-surface-sunken', className)}
+      className={cx(
+        'w-full',
+        rounded && 'rounded-nested',
+        gradient ? 'bg-figure-gradient' : 'bg-surface-sunken',
+        className
+      )}
       style={{ aspectRatio: ratio }}
     />
+  );
+}
+
+/**
+ * A real photograph, with the section skeleton's shimmer standing in its place
+ * until it arrives.
+ *
+ * Locally the files come off disk and this is never seen; over a network it's
+ * the difference between a page that fills in and a page full of holes that
+ * snap shut one by one. The box always occupies its final size — the ratio is
+ * on the wrapper, not the image — so nothing below it moves when the picture
+ * lands.
+ */
+function ImageFigure({ ratio, className, image, rounded = true }) {
+  const [loaded, setLoaded] = useState(false);
+  const ref = useRef(null);
+
+  // A cached image can finish before React has attached `onLoad`, which would
+  // otherwise leave it shimmering behind a picture that's already there.
+  useEffect(() => {
+    const el = ref.current;
+    if (el?.complete && el.naturalWidth > 0) setLoaded(true);
+  }, []);
+
+  return (
+    <div
+      aria-hidden
+      className={cx(
+        'w-full overflow-hidden',
+        rounded && 'rounded-nested',
+        loaded ? 'bg-surface-sunken' : 'shimmer',
+        className
+      )}
+      style={{ aspectRatio: ratio }}
+    >
+      <img
+        ref={ref}
+        src={image}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        // Treated as settled either way: a broken image should stop shimmering
+        // rather than pretend it's still on its way.
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
+        className={cx(
+          'h-full w-full object-cover transition-opacity duration-base ease-standard',
+          loaded ? 'opacity-100' : 'opacity-0'
+        )}
+      />
+    </div>
   );
 }
 

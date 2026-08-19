@@ -3,8 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Composer from '../composer/Composer';
 import MessageList from './MessageList';
 import ResetConfirmDialog from './ResetConfirmDialog';
-import IconButton from '../../ui/IconButton';
-import { Close } from '../../ui/Icons';
 import { builderContentEnter } from '../../design/motion';
 
 const DOCKED_PLACEHOLDER = 'Ask for a change…';
@@ -58,9 +56,8 @@ export default function ChatColumn({ messages, onSubmit, onReset, activity = nul
         <span className="text-body font-semibold text-ink">AI-Builder</span>
         {/* Reset is never re-rendered somewhere else — it stays exactly where
             it is and the confirmation grows out from underneath it, so the
-            word itself doesn't move a pixel on expand. It just needs to sit
-            above the expanding surface; the close icon sits below it and is
-            covered while the card is open. */}
+            word itself doesn't move a pixel on expand. It only needs to sit
+            above the expanding surface. */}
         <div className="flex items-center gap-3">
           {onReset && (
             <button
@@ -71,9 +68,6 @@ export default function ChatColumn({ messages, onSubmit, onReset, activity = nul
               Reset
             </button>
           )}
-          <IconButton label="Close AI-Builder">
-            <Close width={14} height={14} />
-          </IconButton>
         </div>
 
         <AnimatePresence>

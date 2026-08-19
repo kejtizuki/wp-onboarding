@@ -582,15 +582,12 @@ function PhotoGrid({ content }) {
       {content.map((src, index) => {
         const { span, ratio } = TILE_PATTERN[index % TILE_PATTERN.length];
         return (
-          <img
-            key={index}
-            src={src}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            className="w-full object-cover"
-            style={{ gridColumn: `span ${span} / span ${span}`, aspectRatio: ratio }}
-          />
+          // The grid span rides on a wrapper so `Figure` keeps owning the
+          // ratio, the placeholder and the fade-in. Square corners here —
+          // this wall of photographs isn't a set of cards.
+          <div key={index} style={{ gridColumn: `span ${span} / span ${span}` }}>
+            <Figure ratio={ratio} image={src} rounded={false} />
+          </div>
         );
       })}
     </div>

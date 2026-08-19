@@ -72,12 +72,11 @@ export default function AppBar({
         </div>
 
         <div className="hidden min-w-0 flex-1 items-center justify-center stage:flex">
-          <div className="flex h-9 w-full max-w-[18rem] items-center justify-between gap-3 truncate rounded-[8px] bg-surface-sunken px-3">
-            <span className="flex min-w-0 items-center gap-1.5 truncate text-micro text-ink">
-              <Page width={14} height={14} className="shrink-0" />
-              <span className="truncate">{title}</span>
-            </span>
-            <span className="shrink-0 text-micro text-ink-subtle">⌘K</span>
+          {/* Centred rather than spread: with the shortcut hint gone there's
+              no second thing to sit opposite the name. */}
+          <div className="flex h-9 w-full max-w-[18rem] items-center justify-center gap-1.5 truncate rounded-[8px] bg-surface-sunken px-3">
+            <Page width={14} height={14} className="shrink-0 text-ink" />
+            <span className="truncate text-[14px] text-ink">{title}</span>
           </div>
         </div>
 
