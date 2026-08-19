@@ -79,9 +79,13 @@ const migratePath = {
 
   Flow: MigrateFlow,
 
-  /** Called by the comparison view's "Use this version". */
+  /**
+   * Called by the comparison view's "Use this version". The page they just
+   * approved is the same `ResultCanvas` they were looking at, so it moves
+   * across without being rebuilt — see ACCEPT_RESULT.
+   */
   onAccept(session) {
-    session.setStep(Step.RESULT);
+    session.acceptResult();
     session.addMessage(
       'assistant',
       "Here's your upgraded homepage. Tell me what to change."

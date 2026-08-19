@@ -41,10 +41,12 @@ const initialState = {
    */
   forcedImages: null,
   /**
-   * Set when the submit came from tapping a finished template in the
-   * showcase rather than describing something. There is nothing to narrate
-   * in that case — the site is already decided — so the flow skips the
-   * generation beats entirely and the canvas draws in one pass.
+   * The site is already settled, so the canvas draws it in one pass with no
+   * skeletons and nothing to narrate. Two ways to get here: tapping a
+   * finished template in the showcase, and approving a rebuilt site on the
+   * migrate path — where the page has already been on screen in the
+   * comparison view, and redrawing it section by section would look like it
+   * was being made a second time.
    */
   instant: false,
   /**
@@ -126,6 +128,17 @@ function reducer(state, action) {
 
     case 'SET_STEP':
       return { ...state, step: action.step };
+
+    /**
+     * "Use this version" on the migrate path. The rebuilt page has already
+     * been on screen in the comparison view, so it moves to the result
+     * without being drawn again — `instant` is what tells the canvas to skip
+     * the skeletons, and it also puts the chat into the same after-the-build
+     * state a picked template lands in: no log to show, and the palette and
+     * type offered straight away.
+     */
+    case 'ACCEPT_RESULT':
+      return { ...state, step: Step.RESULT, instant: true };
 
     case 'ADD_MESSAGE':
       return { ...state, messages: [...state.messages, createMessage(action.author, action.body)] };
@@ -332,6 +345,7 @@ export function useOnboardingSession() {
   }, []);
 
   const setStep = useCallback((step) => dispatch({ type: 'SET_STEP', step }), []);
+  const acceptResult = useCallback(() => dispatch({ type: 'ACCEPT_RESULT' }), []);
   const addMessage = useCallback(
     (author, body) => dispatch({ type: 'ADD_MESSAGE', author, body }),
     []
@@ -400,6 +414,7 @@ export function useOnboardingSession() {
       path,
       submit,
       setStep,
+      acceptResult,
       addMessage,
       sendMessage,
       setDraft,

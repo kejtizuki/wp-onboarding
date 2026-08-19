@@ -3,11 +3,17 @@ import { AnimatePresence } from 'framer-motion';
 import Message from './Message';
 
 /**
- * `afterFirst` slots a node in directly below the opening user turn. The
- * activity log belongs there — between what was asked and everything that
- * followed from it — not appended after the whole conversation.
+ * Two slots, because two different things want two different places.
+ *
+ * `afterFirst` goes directly below the opening user turn: the activity log
+ * belongs between what was asked and everything that followed from it.
+ * `trailing` goes after the whole conversation, which is where anything still
+ * being asked of the user belongs — the pickers are the next thing to do, not
+ * a note about the first turn. On the migrate path especially, where the scan
+ * narrates itself over several messages, a picker pinned under message one
+ * would be buried above all of them.
  */
-export default function MessageList({ messages, className, afterFirst = null }) {
+export default function MessageList({ messages, className, afterFirst = null, trailing = null }) {
   const endRef = useRef(null);
   // A callback ref, not a plain useRef: the list renders nothing at all until
   // the first message exists (see the early return below), so a mount-time
@@ -36,7 +42,7 @@ export default function MessageList({ messages, className, afterFirst = null }) 
   // `afterFirst` normally slots in under the opening turn, but it can outlive
   // it: resetting the template clears the transcript and leaves the pickers
   // standing on their own. With nothing at all to show, render nothing.
-  if (messages.length === 0 && !afterFirst) return null;
+  if (messages.length === 0 && !afterFirst && !trailing) return null;
 
   return (
     <div className={className}>
@@ -59,6 +65,7 @@ export default function MessageList({ messages, className, afterFirst = null }) 
           ))}
         </AnimatePresence>
         {messages.length === 0 && afterFirst}
+        {trailing}
       </div>
       <div ref={endRef} />
     </div>

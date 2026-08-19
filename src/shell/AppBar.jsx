@@ -89,7 +89,7 @@ export default function AppBar({
             className="gap-1.5"
             onClick={onLaunch}
           >
-            <Lock width={12} height={12} />
+            <Lock width={24} height={24} />
             Launch
           </Button>
           <Button variant="secondary" size="bar" radius="bar" disabled={!actionsEnabled}>

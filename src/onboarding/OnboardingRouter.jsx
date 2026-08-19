@@ -46,8 +46,23 @@ export default function OnboardingRouter() {
   const paletteAlternates = palettesForTheme(theme);
   const defaultFontPairing = themeDefaultFontPairing(theme);
 
+  /**
+   * Whether this session had a build worth narrating. A site that arrived
+   * whole — a showcase template, a migration the user approved, a template
+   * reset back to its default — has no section-by-section story to tell.
+   */
+  const narrated =
+    !session.instant &&
+    !session.logHidden &&
+    (session.generation.total > 0 || session.generation.active);
+
+  /** There's a finished site on screen, so it can be recoloured and restyled. */
+  const siteReady = narrated
+    ? isGenerationComplete(session.generation)
+    : session.instant || session.logHidden;
+
   // Same offer either way — only *when* it appears differs between a
-  // generated site and a template picked whole.
+  // generated site and one that arrived whole.
   const picker = (
     <ColorPalettePicker
       /* Remounts on a template reset, so the pickers offer themselves fresh
@@ -95,22 +110,21 @@ export default function OnboardingRouter() {
                 messages={session.messages}
                 onSubmit={session.sendMessage}
                 onReset={session.resetTemplate}
+                /* The log narrates the opening prompt, so it sits under it.
+                   Skipped entirely when there was no build to narrate: a
+                   template picked whole from the showcase, a rebuilt site
+                   approved on the migrate path, or a template just reset
+                   back to how it started. */
                 activity={
-                  /* Two ways to end up with a site and no build to narrate: a
-                     template picked whole from the showcase, and a template
-                     that's just been reset back to how it started. Either
-                     way the log is skipped and the pickers stand alone —
-                     it's still a site you can recolour. */
-                  session.instant || session.logHidden ? (
-                    picker
-                  ) : session.generation.total > 0 || session.generation.active ? (
-                    <>
-                      <ActivityLog generation={session.generation} />
-                      {/* Only once there's a finished site to actually recolour. */}
-                      {isGenerationComplete(session.generation) && picker}
-                    </>
-                  ) : null
+                  !narrated ? null : (
+                    <ActivityLog generation={session.generation} />
+                  )
                 }
+                /* The pickers are the next thing being asked of the user, so
+                   they belong after the conversation rather than pinned under
+                   its first turn — which on the migrate path would bury them
+                   above the scan's own messages. */
+                trailing={siteReady ? picker : null}
               />
             }
             preview={
