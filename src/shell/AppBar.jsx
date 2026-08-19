@@ -1,13 +1,13 @@
 import React from 'react';
 import cx from '../lib/cx';
 import Button from '../ui/Button';
-import { WordPressBadge, AddBadge, Page, Lock, Desktop, Mobile } from '../ui/Icons';
+import { WordPressBadge, Page, Lock, Desktop, Mobile } from '../ui/Icons';
 
 /**
  * GLOBAL APP BAR — WordPress editor chrome, spanning both panels rather than
- * scoped to either. Reads as the real editor: the WordPress mark, "New", and
- * the viewport switcher on the left, the open document named in the center,
- * and the session's asks on the right.
+ * scoped to either. Reads as the real editor: the WordPress mark and the
+ * viewport switcher on the left, the open document named in the center, and
+ * the session's asks on the right.
  *
  * Only controls that do something live here. The editor's document tools
  * (edit, undo, redo, outline) were dropped rather than left inert — a row of
@@ -43,12 +43,6 @@ export default function AppBar({
             className="shrink-0 rounded-[8px]"
           >
             <WordPressBadge aria-hidden className="h-[41px] w-[41px] rounded-[8px]" />
-          </button>
-
-          {/* The supplied "New" asset, rendered at its own exact
-              dimensions — not run through IconButton's sizing. */}
-          <button type="button" aria-label="New" className="shrink-0">
-            <AddBadge width={32} height={32} />
           </button>
 
           {/* Moved here from the preview panel's own toolbar — the panel
