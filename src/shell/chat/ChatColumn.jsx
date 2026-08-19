@@ -44,7 +44,10 @@ export default function ChatColumn({ messages, onSubmit, onReset, activity = nul
       {/* The fill has to carry the panel's own top corners: the sidebar isn't
           clipped (the reset popover overhangs it), so an opaque header with
           square corners would paint straight over them. */}
-      <div className="relative z-10 flex shrink-0 items-center justify-between rounded-t-panel bg-surface px-3 py-3">
+      {/* 20px in from each edge — deeper than the conversation's own 12px, so
+          the two labels sit clear of the panel's rounded corners rather than
+          crowding them. */}
+      <div className="relative z-10 flex shrink-0 items-center justify-between rounded-t-panel bg-surface px-5 py-3">
         {/* No rule under the header — the content fades out beneath it
             instead, so a message scrolling up dissolves rather than sliding
             under a line. Sits outside the header's own box (hence the
