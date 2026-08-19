@@ -1,4 +1,8 @@
 import noteslabBand from '../../images/noteslab-band.webp';
+import member1 from '../../images/noteslab1.png';
+import member2 from '../../images/noteslab3.png';
+import member3 from '../../images/noteslab2.png';
+import member4 from '../../images/noteslab4.png';
 
 /**
  * NOTES LAB — fixed content.
@@ -73,19 +77,38 @@ export const CURRENT_PROJECTS = {
   ],
 };
 
-/** Flat tints, not photos — same stand-in logic as `Figure`, one hue per card. */
-const MEMBER_TINTS = ['180 150 90', '90 150 90', '70 140 150', '140 90 160'];
-
 export const TEAM = {
   eyebrow: 'Meet the lab',
   heading: 'Meet the people behind NotesLab',
+  /* The reference's own plates — one halftone per fellow, each in the hue the
+     flat tint here used to stand in for, so the four still read apart at a
+     glance the way they did before. */
   members: [
-    { name: 'Dr. Samira Reyes', role: 'Principal investigator', tags: 'Field methods, open data' },
-    { name: 'Niamh Doran', role: 'PhD researcher', tags: 'Water access, mapping' },
-    { name: 'Ciarán Boyle', role: 'Research assistant', tags: 'Sensors, data cleaning' },
-    { name: 'Amina Yusuf', role: 'Postdoctoral fellow', tags: 'Coastal change, risk' },
+    {
+      name: 'Dr. Samira Reyes',
+      role: 'Principal investigator',
+      tags: 'Field methods, open data',
+      image: member1,
+    },
+    {
+      name: 'Niamh Doran',
+      role: 'PhD researcher',
+      tags: 'Water access, mapping',
+      image: member2,
+    },
+    {
+      name: 'Ciarán Boyle',
+      role: 'Research assistant',
+      tags: 'Sensors, data cleaning',
+      image: member3,
+    },
+    {
+      name: 'Amina Yusuf',
+      role: 'Postdoctoral fellow',
+      tags: 'Coastal change, risk',
+      image: member4,
+    },
   ],
-  tints: MEMBER_TINTS,
   collaborate: {
     eyebrow: 'Work with us',
     body: 'Open to researchers, community groups and public agencies who want to use or contribute data.',

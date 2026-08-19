@@ -277,9 +277,9 @@ function EntryList({ content, spec, compact }) {
 /* ── Team grid (NotesLab) ─────────────────────────────────────────────────── */
 
 /**
- * Flat-tinted squares stand in for the reference's portraits — same logic as
- * `Figure`, just one hue per person instead of the theme's shared gradient,
- * since the point here is telling four people apart at a glance.
+ * The reference's own halftone plates, one per fellow. They keep the 4/3 box
+ * the flat tints held: the square source crops top and bottom, but each
+ * plate's frame sits well inside that, so nothing composed is lost.
  */
 function TeamGrid({ content, compact }) {
   return (
@@ -287,16 +287,9 @@ function TeamGrid({ content, compact }) {
       <SectionHeading compact={compact}>{content.heading}</SectionHeading>
 
       <div className={cx('mt-8 grid gap-8', compact ? 'grid-cols-1' : 'grid-cols-2')}>
-        {content.members.map((member, index) => (
+        {content.members.map((member) => (
           <div key={member.name}>
-            <div
-              aria-hidden
-              className="w-full rounded-nested"
-              style={{
-                aspectRatio: '4 / 3',
-                background: `rgb(${content.tints[index % content.tints.length]})`,
-              }}
-            />
+            <Figure ratio="4 / 3" image={member.image} />
             <p className="mt-3 text-body font-medium text-ink">{member.name}</p>
             <p className="text-micro text-ink-subtle">{member.role}</p>
             <p className="mt-1 text-micro text-ink-muted">{member.tags}</p>
