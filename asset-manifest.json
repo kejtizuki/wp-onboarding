@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "./static/css/main.c9a4c145.css",
-    "main.js": "./static/js/main.bb6d3cff.js",
+    "main.css": "./static/css/main.2f0d1d34.css",
+    "main.js": "./static/js/main.02231db4.js",
     "static/media/cph.webp": "./static/media/cph.1eef15f1cd51724968b2.webp",
     "static/media/tanya-prodaan-g5J1wBzLbXw-unsplash.jpg": "./static/media/tanya-prodaan-g5J1wBzLbXw-unsplash.b6e59c58936e2a022857.jpg",
     "static/media/annie-spratt-WlAXIKTIDN8-unsplash.jpg": "./static/media/annie-spratt-WlAXIKTIDN8-unsplash.d6a7892686d23ac1864e.jpg",
@@ -43,11 +43,11 @@
     "static/media/LastikFree-Regular.woff2": "./static/media/LastikFree-Regular.7823ff065ebf362b51ae.woff2",
     "static/media/SpaceGrotesk-Variable.woff2": "./static/media/SpaceGrotesk-Variable.236fcdd02a5a87081377.woff2",
     "index.html": "./index.html",
-    "main.c9a4c145.css.map": "./static/css/main.c9a4c145.css.map",
-    "main.bb6d3cff.js.map": "./static/js/main.bb6d3cff.js.map"
+    "main.2f0d1d34.css.map": "./static/css/main.2f0d1d34.css.map",
+    "main.02231db4.js.map": "./static/js/main.02231db4.js.map"
   },
   "entrypoints": [
-    "static/css/main.c9a4c145.css",
-    "static/js/main.bb6d3cff.js"
+    "static/css/main.2f0d1d34.css",
+    "static/js/main.02231db4.js"
   ]
 }
