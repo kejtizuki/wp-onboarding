@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Composer from '../composer/Composer';
 import MessageList from './MessageList';
 import ResetConfirmDialog from './ResetConfirmDialog';
+import { releaseAttachments, toAttachments } from '../composer/attachments';
 import { builderContentEnter } from '../../design/motion';
 
 const DOCKED_PLACEHOLDER = 'Ask for a change…';
@@ -23,9 +24,25 @@ const DOCKED_PLACEHOLDER = 'Ask for a change…';
 export default function ChatColumn({ messages, onSubmit, onReset, activity = null, trailing = null }) {
   const [value, setValue] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [attachments, setAttachments] = useState([]);
 
+  const attach = (files) => setAttachments((current) => [...current, ...toAttachments(files)]);
+
+  const removeAttachment = (id) =>
+    setAttachments((current) => {
+      const going = current.filter((attachment) => attachment.id === id);
+      releaseAttachments(going);
+      return current.filter((attachment) => attachment.id !== id);
+    });
+
+  /**
+   * The blob URLs deliberately outlive the chips: once sent, the preview is
+   * the thing holding them, so they're handed to `onSubmit` and this column
+   * stops tracking them. Revoking here would blank the photos it just placed.
+   */
   const handleSubmit = (text) => {
-    onSubmit(text);
+    onSubmit(text, attachments);
+    setAttachments([]);
     setValue('');
   };
 
@@ -118,6 +135,9 @@ export default function ChatColumn({ messages, onSubmit, onReset, activity = nul
           onSubmit={handleSubmit}
           placeholder={DOCKED_PLACEHOLDER}
           submitLabel="Send"
+          attachments={attachments}
+          onAttach={attach}
+          onRemoveAttachment={removeAttachment}
         />
       </div>
     </motion.div>

@@ -23,6 +23,15 @@ export const ArrowUp = (props) => (
   </svg>
 );
 
+/** The composer's "attach a photo" affordance — a framed picture with a horizon. */
+export const Image = (props) => (
+  <svg {...base} {...props}>
+    <rect x="2.25" y="3.25" width="11.5" height="9.5" rx="1.75" />
+    <path d="M2.5 10.5 5.75 7.6l2.9 2.6M9.4 9.1l1.6-1.4 2.5 2.2" />
+    <circle cx="10.4" cy="6.1" r="0.9" />
+  </svg>
+);
+
 export const Sparkle = (props) => (
   <svg {...base} {...props}>
     <path d="M8 2.2 9.3 6l3.8 1.3L9.3 8.6 8 12.4 6.7 8.6 2.9 7.3 6.7 6 8 2.2Z" />

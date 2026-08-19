@@ -8,7 +8,14 @@ import { initialGeneration, Phase as GenPhase, isGenerationComplete } from '../g
 let messageId = 0;
 const nextId = () => `m${++messageId}`;
 
-const createMessage = (author, body) => ({ id: nextId(), author, body });
+const createMessage = (author, body, attachments) => ({
+  id: nextId(),
+  author,
+  body,
+  // Only present on a turn that carried photos, so the bubble renders them
+  // above the text — a photos-only turn would otherwise be an empty bubble.
+  attachments: attachments?.length ? attachments : undefined,
+});
 
 const initialState = {
   phase: Phase.ENTRY,
@@ -61,6 +68,13 @@ const initialState = {
    * (see fontPairings.js). `null` renders the theme's own `--font-serif`.
    */
   fontPairingId: null,
+  /**
+   * Photos attached in the chat, as blob URLs. They fill the template's own
+   * picture slots in page order — see imageOverrides.js. Each send replaces
+   * the set rather than adding to it, so what's on the page is always exactly
+   * what was last sent.
+   */
+  uploads: [],
   /** Bumped by RESET_TEMPLATE; the pickers key off it so they remount. */
   templateVersion: 0,
   /**
@@ -141,7 +155,13 @@ function reducer(state, action) {
       return { ...state, step: Step.RESULT, instant: true };
 
     case 'ADD_MESSAGE':
-      return { ...state, messages: [...state.messages, createMessage(action.author, action.body)] };
+      return {
+        ...state,
+        messages: [
+          ...state.messages,
+          createMessage(action.author, action.body, action.attachments),
+        ],
+      };
 
     case 'SET_DRAFT':
       return { ...state, draft: action.draft };
@@ -238,9 +258,13 @@ function reducer(state, action) {
      * `templateVersion` is what the pickers key off, so they remount and
      * offer themselves fresh rather than staying on a stale selection.
      */
+    case 'SET_UPLOADS':
+      return { ...state, uploads: action.uploads };
+
     case 'RESET_TEMPLATE':
       return {
         ...state,
+        uploads: [],
         paletteId: null,
         fontPairingId: null,
         sectionRotation: 0,
@@ -358,11 +382,26 @@ export function useOnboardingSession() {
    * matching is deliberately literal rather than a parser pretending to be
    * more general than it is.
    */
-  const sendMessage = useCallback((body) => {
+  const sendMessage = useCallback((body, attachments = []) => {
     const text = (body || '').trim();
-    if (!text) return;
+    // Photos are an instruction on their own — see the composer, which arms
+    // its send button for them with no sentence attached.
+    if (!text && attachments.length === 0) return;
 
-    dispatch({ type: 'ADD_MESSAGE', author: 'user', body: text });
+    dispatch({ type: 'ADD_MESSAGE', author: 'user', body: text, attachments });
+
+    if (attachments.length > 0) {
+      dispatch({ type: 'SET_UPLOADS', uploads: attachments.map((one) => one.url) });
+      const count = attachments.length;
+      dispatch({
+        type: 'ADD_MESSAGE',
+        author: 'assistant',
+        body:
+          count === 1
+            ? "Dropped your photo into the first image slot on the page."
+            : `Dropped your ${count} photos into the first ${count} image slots, top to bottom.`,
+      });
+    }
 
     if (/\b(change|swap|reorder|switch)\b[\s\S]*\border\b/i.test(text)) {
       dispatch({ type: 'REORDER_SECTIONS' });

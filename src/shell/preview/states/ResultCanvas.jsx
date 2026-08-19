@@ -6,6 +6,7 @@ import { getRenderableTheme } from '../../../onboarding/themes/registry';
 import { getPalette } from '../../../onboarding/generation/palettes';
 import { getFontPairing } from '../../../onboarding/generation/fontPairings';
 import { sectionLabel } from '../../../onboarding/generation/summary';
+import { contentWithUploads } from '../../../onboarding/generation/imageOverrides';
 import { SECTION_RENDERERS } from '../sections';
 import SectionSkeleton from '../sections/SectionSkeleton';
 
@@ -144,6 +145,11 @@ export default function ResultCanvas({
   sectionRotation = 0,
   /** Bumped on every reorder; each bump replays the skeletons once. */
   reorderNonce = 0,
+  /**
+   * Photos attached in the chat, filling the template's own picture slots in
+   * page order — see imageOverrides.js.
+   */
+  uploads = null,
   /** Omit all three and the canvas renders silently — see BeforeAfter. */
   onSectionsResolved,
   onSectionBuilt,
@@ -248,6 +254,17 @@ export default function ResultCanvas({
 
   if (!draft) return null;
 
+  // Resolved for the whole page up front, not per section, because attached
+  // photos fill picture slots in page order and so need one queue draining
+  // across all of them. A section can carry its own fixed content instead of
+  // reading a draft slot — see notesLab.js, whose sections mostly aren't
+  // driven by the generic business-description model at all.
+  const contents = contentWithUploads(
+    ordered,
+    (spec) => spec.content ?? (spec.slot ? draft[spec.slot] : draft),
+    uploads
+  );
+
   return (
     <div
       ref={scrollerRef}
@@ -267,10 +284,7 @@ export default function ResultCanvas({
       <div className={cx('flex w-full flex-col', compact ? 'gap-10 py-5' : 'gap-16 py-8')}>
         {(immediate ? ordered : ordered.slice(0, visibleCount)).map((spec, index) => {
           const { Component, blockName } = SECTION_RENDERERS[spec.type];
-          // A section can carry its own fixed content instead of reading a
-          // draft slot — see notesLab.js, whose sections mostly aren't driven
-          // by the generic business-description model at all.
-          const content = spec.content ?? (spec.slot ? draft[spec.slot] : draft);
+          const content = contents[index];
           const key = `${spec.type}-${spec.slot || index}`;
           const label = sectionLabel(spec, draft, blockName);
 

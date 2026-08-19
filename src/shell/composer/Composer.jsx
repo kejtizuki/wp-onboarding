@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import cx from '../../lib/cx';
-import { ArrowUp } from '../../ui/Icons';
+import { ArrowUp, Image } from '../../ui/Icons';
 import { fade, snap } from '../../design/motion';
 import { enabledModes, InputMode } from './inputModes';
+import AttachmentChips from './AttachmentChips';
+import { isImage } from './attachments';
 
 /**
  * COMPOSER
@@ -45,10 +47,20 @@ export default function Composer({
   /** 'text' | 'url' — same component, different validation. */
   inputType = 'text',
   modes = [InputMode.FREEFORM],
+  /**
+   * Photo attachment. Omit `onAttach` and none of it exists — no button, no
+   * drop target — which is how the entry composer stays a single plain field.
+   */
+  attachments = [],
+  onAttach,
+  onRemoveAttachment,
 }) {
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [focused, setFocused] = useState(false);
+  const [draggingOver, setDraggingOver] = useState(false);
   const accessories = enabledModes(modes).filter((mode) => mode.Accessory);
+  const attachable = Boolean(onAttach);
 
   const maxHeight = compact ? 132 : 176;
 
@@ -99,7 +111,9 @@ export default function Composer({
   // Loose on purpose — "yoursite.com" should pass without a scheme.
   const looksLikeUrl = (text) => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(text.trim());
 
-  const filled = value.trim().length > 0;
+  // Photos on their own are a complete instruction — "use these" — so they
+  // arm the send button with no sentence to go with them.
+  const filled = value.trim().length > 0 || attachments.length > 0;
   const valid = inputType === 'url' ? looksLikeUrl(value) : filled;
   const canSubmit = !disabled && !locked && valid;
   const showUrlNudge = inputType === 'url' && filled && !valid;
@@ -117,6 +131,63 @@ export default function Composer({
     }
   };
 
+  const pickFiles = (fileList) => {
+    const files = Array.from(fileList || []).filter(isImage);
+    if (files.length) onAttach(files);
+  };
+
+  // A drag entering a child fires `dragleave` on the parent, so a plain
+  // boolean flickers as the pointer crosses the textarea. Counting enters
+  // against leaves is the standard fix.
+  const dragDepth = useRef(0);
+
+  const dragProps = attachable
+    ? {
+        onDragEnter: (event) => {
+          if (!event.dataTransfer?.types?.includes('Files')) return;
+          dragDepth.current += 1;
+          setDraggingOver(true);
+        },
+        onDragOver: (event) => {
+          if (!event.dataTransfer?.types?.includes('Files')) return;
+          // Without this the browser navigates to the dropped file instead.
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'copy';
+        },
+        onDragLeave: () => {
+          dragDepth.current = Math.max(0, dragDepth.current - 1);
+          if (dragDepth.current === 0) setDraggingOver(false);
+        },
+        onDrop: (event) => {
+          event.preventDefault();
+          dragDepth.current = 0;
+          setDraggingOver(false);
+          pickFiles(event.dataTransfer?.files);
+        },
+      }
+    : {};
+
+  const sendButton = (
+    <motion.button
+      type="submit"
+      disabled={!canSubmit}
+      aria-label={submitLabel}
+      title={submitLabel}
+      whileHover={canSubmit ? { y: -1 } : undefined}
+      whileTap={canSubmit ? { scale: 0.94 } : undefined}
+      transition={snap}
+      className={cx(
+        'flex shrink-0 items-center justify-center rounded-pill',
+        'bg-accent text-accent-ink transition-all duration-fast ease-standard',
+        // Neutral when there's nothing to send, so the accent means "ready".
+        'disabled:bg-line disabled:text-ink-subtle',
+        compact ? 'h-7 w-7' : 'h-9 w-9'
+      )}
+    >
+      <ArrowUp width={compact ? 14 : 16} height={compact ? 14 : 16} strokeWidth={1.75} />
+    </motion.button>
+  );
+
   // Deliberately not a shared/layout-animated element. The entry composer and
   // the docked composer are two separate inputs that never morph into one
   // another — the transition between them is a crossfade owned by Shell.
@@ -126,12 +197,18 @@ export default function Composer({
         event.preventDefault();
         submit();
       }}
+      {...dragProps}
       className={cx(
         'w-full origin-bottom border bg-surface',
         'transition-all duration-fast ease-standard',
         // The whole surface is the field. Focus darkens its edge and deepens
         // its shadow rather than drawing a second box around the text.
-        focused
+        // A drag overhead reads the same as focus, plus the accent edge — the
+        // field is already the drop target, so it lights up rather than
+        // throwing a separate overlay on top of itself.
+        draggingOver
+          ? 'border-accent shadow-raised'
+          : focused
           ? 'border-line-strong shadow-raised'
           : 'border-line shadow-composer hover:border-line-strong',
         // Docked, it sits 12px inside the sidebar, so it takes the nested
@@ -146,6 +223,14 @@ export default function Composer({
             <Accessory key={id} onPick={onChange} compact={compact} />
           ))}
         </div>
+      )}
+
+      {attachable && (
+        <AttachmentChips
+          attachments={attachments}
+          onRemove={onRemoveAttachment}
+          compact={compact}
+        />
       )}
 
       <label className="sr-only" htmlFor="composer-input">
@@ -190,28 +275,47 @@ export default function Composer({
         {/* Bottom-anchored by the row's own `items-end` — no separate
             animation. It rides down as the row grows purely because the
             textarea's height transition (above) is smoothly resizing the row
-            it's sitting in; nothing here needs to know that's happening. */}
-        <div className="flex shrink-0">
-          <motion.button
-            type="submit"
-            disabled={!canSubmit}
-            aria-label={submitLabel}
-            title={submitLabel}
-            whileHover={canSubmit ? { y: -1 } : undefined}
-            whileTap={canSubmit ? { scale: 0.94 } : undefined}
-            transition={snap}
+            it's sitting in; nothing here needs to know that's happening.
+
+            With attachment on, it moves into the control row below instead,
+            so the field's full width belongs to the text. */}
+        {!attachable && <div className="flex shrink-0">{sendButton}</div>}
+      </div>
+
+      {/* One static row, not a second layout the composer switches between —
+          see the note at the top of this file. It exists for the whole life
+          of the instance that has attachment enabled, and not at all for the
+          one that doesn't. */}
+      {attachable && (
+        <div className="mt-1 flex items-center justify-between">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(event) => {
+              pickFiles(event.target.files);
+              // Cleared so picking the same file twice in a row still fires.
+              event.target.value = '';
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Add photos"
+            title="Add photos"
             className={cx(
-              'flex items-center justify-center rounded-pill',
-              'bg-accent text-accent-ink transition-all duration-fast ease-standard',
-              // Neutral when there's nothing to send, so the accent means "ready".
-              'disabled:bg-line disabled:text-ink-subtle',
-              compact ? 'h-7 w-7' : 'h-9 w-9'
+              'flex h-8 w-8 items-center justify-center rounded-control',
+              'text-ink-subtle transition-colors duration-fast ease-standard',
+              'hover:bg-surface-sunken hover:text-ink'
             )}
           >
-            <ArrowUp width={compact ? 14 : 16} height={compact ? 14 : 16} strokeWidth={1.75} />
-          </motion.button>
+            <Image width={18} height={18} />
+          </button>
+          {sendButton}
         </div>
-      </div>
+      )}
 
       <AnimatePresence initial={false}>
         {footnote && !compact && (

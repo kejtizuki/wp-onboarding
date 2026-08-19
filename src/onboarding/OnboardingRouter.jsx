@@ -137,6 +137,7 @@ export default function OnboardingRouter() {
                 instant={session.instant}
                 sectionRotation={session.sectionRotation}
                 reorderNonce={session.reorderNonce}
+                uploads={session.uploads}
                 /* Nothing is counting in instant mode, and reporting would
                    put the activity log back on screen by setting a total. */
                 onSectionsResolved={session.instant ? undefined : session.noteSectionsResolved}

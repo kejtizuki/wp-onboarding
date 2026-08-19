@@ -21,6 +21,7 @@ export default function PreviewPanel({
   instant = false,
   sectionRotation = 0,
   reorderNonce = 0,
+  uploads = null,
   onSectionsResolved,
   onSectionBuilt,
   onSectionWritten,
@@ -58,6 +59,7 @@ export default function PreviewPanel({
             instant={instant}
             sectionRotation={sectionRotation}
             reorderNonce={reorderNonce}
+            uploads={uploads}
             onSectionsResolved={onSectionsResolved}
             onSectionBuilt={onSectionBuilt}
             onSectionWritten={onSectionWritten}

@@ -33,6 +33,27 @@ export default function Message({ message }) {
             : 'w-full whitespace-pre-line'
         )}
       >
+        {/* Photos sent with the turn, as thumbnails rather than filenames —
+            the same reason the composer's chips lead with the picture. A
+            turn can be photos alone, in which case this is the whole
+            bubble. */}
+        {message.attachments && (
+          <div
+            className={cx(
+              'flex flex-wrap gap-1.5',
+              message.body && 'mb-2'
+            )}
+          >
+            {message.attachments.map((attachment) => (
+              <img
+                key={attachment.id}
+                src={attachment.url}
+                alt={attachment.name}
+                className="h-14 w-14 rounded-control object-cover"
+              />
+            ))}
+          </div>
+        )}
         {message.body}
       </div>
     </motion.div>
