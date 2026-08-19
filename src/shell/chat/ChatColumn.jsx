@@ -21,7 +21,7 @@ const DOCKED_PLACEHOLDER = 'Ask for a change…';
  * Fades in a beat after the builder shell itself, so the surface settles before
  * content appears inside it.
  */
-export default function ChatColumn({ messages, onSubmit, onReset, activity = null, trailing = null }) {
+export default function ChatColumn({ messages, onSubmit, onReset, activity = null, pinned = null }) {
   const [value, setValue] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [attachments, setAttachments] = useState([]);
@@ -113,7 +113,7 @@ export default function ChatColumn({ messages, onSubmit, onReset, activity = nul
           16px below lives outside the scroller instead, so it holds at every
           scroll position. */}
       <div className="min-h-0 flex-1 overflow-y-auto scroll-slim px-3 pt-4">
-        <MessageList messages={messages} afterFirst={activity} trailing={trailing} />
+        <MessageList messages={messages} afterFirst={activity} pinned={pinned} />
       </div>
 
       {/* 12px inset — matches the message list's px-3 and is what makes

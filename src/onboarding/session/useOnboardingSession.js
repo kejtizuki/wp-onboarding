@@ -388,7 +388,14 @@ export function useOnboardingSession() {
     // its send button for them with no sentence attached.
     if (!text && attachments.length === 0) return;
 
-    dispatch({ type: 'ADD_MESSAGE', author: 'user', body: text, attachments });
+    // Photos sent without a sentence still need to read as a turn someone
+    // took, so they get the instruction they implied.
+    dispatch({
+      type: 'ADD_MESSAGE',
+      author: 'user',
+      body: text || 'Replace images',
+      attachments,
+    });
 
     if (attachments.length > 0) {
       dispatch({ type: 'SET_UPLOADS', uploads: attachments.map((one) => one.url) });

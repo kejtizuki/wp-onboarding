@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Shell from '../shell/Shell';
 import EntryScreen from '../shell/EntryScreen';
 import BuilderStage from '../shell/BuilderStage';
@@ -61,6 +61,26 @@ export default function OnboardingRouter() {
     ? isGenerationComplete(session.generation)
     : session.instant || session.logHidden;
 
+  /**
+   * Which turn the pickers were offered at, so they stay there rather than
+   * being pushed along by everything said afterwards — see MessageList's
+   * `pinned`. Captured once, when the site first becomes ready, and again
+   * from scratch after a template reset (which rewinds the transcript, so an
+   * anchor measured against the old one would point past its end).
+   */
+  const [anchor, setAnchor] = useState(null);
+  const messageCount = session.messages.length;
+
+  useEffect(() => {
+    setAnchor((current) => {
+      if (!siteReady) return null;
+      // Same template, already anchored — leave it exactly where it is. React
+      // bails out on the identical value, so later turns cost nothing here.
+      if (current && current.version === session.templateVersion) return current;
+      return { version: session.templateVersion, index: messageCount };
+    });
+  }, [siteReady, session.templateVersion, messageCount]);
+
   // Same offer either way — only *when* it appears differs between a
   // generated site and one that arrived whole.
   const picker = (
@@ -120,11 +140,11 @@ export default function OnboardingRouter() {
                     <ActivityLog generation={session.generation} />
                   )
                 }
-                /* The pickers are the next thing being asked of the user, so
-                   they belong after the conversation rather than pinned under
-                   its first turn — which on the migrate path would bury them
-                   above the scan's own messages. */
-                trailing={siteReady ? picker : null}
+                /* Held at the turn they were offered at, not appended to the
+                   end: answering something else in between — dropping photos
+                   in, say — used to push the palette question below the
+                   answer, where it read as being asked all over again. */
+                pinned={siteReady && anchor ? { index: anchor.index, node: picker } : null}
               />
             }
             preview={

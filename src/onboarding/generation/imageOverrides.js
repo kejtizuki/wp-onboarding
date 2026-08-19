@@ -68,8 +68,32 @@ export function applyUploads(node, queue) {
  * Resolve every section's content in one pass, so the queue drains down the
  * page in render order. `resolve` is how a spec finds its own slot — kept out
  * here because only the canvas knows about drafts.
+ *
+ * Two rules keep the queue landing where it can actually be seen:
+ *
+ * A section with neither a slot nor its own content falls back to the whole
+ * draft — the headers and footers, which read it for the site's name. Those
+ * are skipped: every one of them sits at the top of its theme, and the draft
+ * they'd be handed contains every picture slot on the page, so filling there
+ * would drain the queue into an object that renders no pictures at all and
+ * leave the real slots below untouched. Slots belong to sections that own one.
+ *
+ * And two sections can share a slot — editorial points both its hero and its
+ * image band at `hero`. That's one set of pictures, so it's filled once and
+ * the result shared, rather than the first section quietly eating a photo the
+ * second one was going to show.
  */
 export function contentWithUploads(specs, resolve, uploads) {
   const queue = uploads ? [...uploads] : [];
-  return specs.map((spec) => applyUploads(resolve(spec), queue));
+  const filled = new Map();
+
+  return specs.map((spec) => {
+    const raw = resolve(spec);
+    if (!spec.content && !spec.slot) return raw;
+    if (filled.has(raw)) return filled.get(raw);
+
+    const next = applyUploads(raw, queue);
+    filled.set(raw, next);
+    return next;
+  });
 }
