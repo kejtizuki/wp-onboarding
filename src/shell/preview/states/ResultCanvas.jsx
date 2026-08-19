@@ -262,6 +262,7 @@ export default function ResultCanvas({
   const contents = contentWithUploads(
     ordered,
     (spec) => spec.content ?? (spec.slot ? draft[spec.slot] : draft),
+    (spec) => SECTION_RENDERERS[spec.type]?.images,
     uploads
   );
 

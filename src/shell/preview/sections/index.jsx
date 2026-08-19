@@ -719,25 +719,36 @@ function SiteFooter({ draft }) {
  * `blockName` is what the Gutenberg-style hover label shows, so the preview
  * reads as editable WordPress rather than a screenshot.
  */
+/**
+ * `images` lists the picture slots a renderer actually *draws*, which is not
+ * the same as the picture-shaped data its content happens to carry. Editorial
+ * points its prose blocks at `offering` and `story`, and both of those hold an
+ * `image` the block never renders — a photo dropped there would vanish. And a
+ * slot can be shared: editorial's hero feeds both `grid-hero`, which shows no
+ * picture, and `image-band`, which shows one. Declaring it per renderer is
+ * what keeps attached photos landing only where they can be seen. See
+ * imageOverrides.js for the path syntax; omit the key for a section that
+ * renders no pictures at all.
+ */
 export const SECTION_RENDERERS = {
   'site-header': { Component: SiteHeader, blockName: 'Site header' },
   'grid-header': { Component: GridHeader, blockName: 'Site header' },
   'lab-nav': { Component: LabNav, blockName: 'Site header' },
-  'split-hero': { Component: SplitHero, blockName: 'Cover' },
-  'lab-hero': { Component: LabHero, blockName: 'Cover' },
+  'split-hero': { Component: SplitHero, blockName: 'Cover', images: ['image'] },
+  'lab-hero': { Component: LabHero, blockName: 'Cover', images: ['bandImage'] },
   'grid-hero': { Component: GridHero, blockName: 'Cover' },
-  'image-band': { Component: ImageBand, blockName: 'Image' },
-  'media-text': { Component: MediaText, blockName: 'Media & text' },
+  'image-band': { Component: ImageBand, blockName: 'Image', images: ['image'] },
+  'media-text': { Component: MediaText, blockName: 'Media & text', images: ['image'] },
   'quote-band': { Component: QuoteBand, blockName: 'Pullquote' },
-  'item-grid': { Component: ItemGrid, blockName: 'Grid' },
-  'photo-grid': { Component: PhotoGrid, blockName: 'Gallery' },
+  'item-grid': { Component: ItemGrid, blockName: 'Grid', images: ['[].image'] },
+  'photo-grid': { Component: PhotoGrid, blockName: 'Gallery', images: ['[]'] },
   'prose-block': { Component: ProseBlock, blockName: 'Group' },
-  'banner-hero': { Component: BannerHero, blockName: 'Cover' },
-  'card-grid': { Component: CardGrid, blockName: 'Columns' },
+  'banner-hero': { Component: BannerHero, blockName: 'Cover', images: ['image'] },
+  'card-grid': { Component: CardGrid, blockName: 'Columns', images: ['[].image'] },
   'site-footer': { Component: SiteFooter, blockName: 'Site footer' },
   'statement-split': { Component: StatementSplit, blockName: 'Group' },
   'entry-list': { Component: EntryList, blockName: 'List' },
-  'team-grid': { Component: TeamGrid, blockName: 'Team' },
+  'team-grid': { Component: TeamGrid, blockName: 'Team', images: ['members[].image'] },
   'newsletter-footer': { Component: NewsletterFooter, blockName: 'Newsletter' },
 };
 

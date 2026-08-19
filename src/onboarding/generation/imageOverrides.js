@@ -4,96 +4,104 @@
  * Someone attaching photos to the chat means "use these instead" — so rather
  * than inventing a new section to hold them, they fill the picture slots the
  * template already has, in the order those slots appear down the page. Four
- * photos onto a theme with a hero, an offering and a story fills those three
- * and stops; three photos onto a seven-up gallery fills the first three and
+ * photos onto a theme with a hero and a three-up gallery fills the hero and
+ * all three; three photos onto a seven-up gallery fills the first three and
  * leaves the rest as they were.
  *
- * Slots are found by key, not by position: `image` and `bandImage` are single
- * pictures, `gallery` is a list of them. Every one of those is a slot whether
- * or not it currently holds anything — an empty slot renders as a placeholder
- * block, and replacing a placeholder is exactly as much "use this photo" as
- * replacing a stock shot is.
+ * Which slots exist is declared by the renderer that draws them — see
+ * `images` in sections/index.jsx — not inferred from the shape of the data.
+ * That distinction is the whole point: editorial's prose blocks are handed
+ * content carrying an `image` they never render, so a photo matched by shape
+ * alone would be consumed into a section that shows nothing, and the slots
+ * further down the page would never see it. A slot only counts if something
+ * draws it.
+ *
+ * Path syntax, resolved against a section's content:
+ *
+ *   'image'              content.image — one picture
+ *   '[]'                 content is itself the list of pictures (a gallery)
+ *   '[].image'           content is a list; each entry's `image`
+ *   'members[].image'    content.members is a list; each entry's `image`
+ *
+ * Every slot counts whether or not it currently holds anything — an empty one
+ * renders as a placeholder block, and replacing a placeholder is exactly as
+ * much "use this photo" as replacing a stock shot is.
  */
 
-const IMAGE_KEYS = new Set(['image', 'bandImage']);
-const IMAGE_LIST_KEYS = new Set(['gallery']);
+/** Fill a list of pictures, running dry mid-list rather than all-or-nothing. */
+function fillList(list, queue) {
+  if (!Array.isArray(list) || !queue.length) return list;
+  return list.map((entry) => (queue.length ? queue.shift() : entry));
+}
 
-/**
- * Fill this content's picture slots from `queue`, consuming it as it goes.
- *
- * `queue` is shared across every section on the page and mutated by shifting,
- * which is what makes "in the order they appear down the page" work — see
- * ResultCanvas, which walks the sections in render order with one queue.
- *
- * Returns the original object identity when nothing was replaced, so sections
- * with no picture slots don't re-render for someone else's upload.
- */
-export function applyUploads(node, queue) {
-  if (!queue.length || node === null || typeof node !== 'object') return node;
+/** Fill one declared path. Returns the original identity when nothing changed. */
+function fillPath(content, path, queue) {
+  if (!queue.length || content === null || typeof content !== 'object') return content;
 
-  if (Array.isArray(node)) {
+  // The content is the list of pictures itself — a gallery.
+  if (path === '[]') return fillList(content, queue);
+
+  // '[].key' — the content is a list of objects, each holding one picture.
+  if (path.startsWith('[].')) {
+    if (!Array.isArray(content)) return content;
+    const key = path.slice(3);
     let changed = false;
-    const out = node.map((item) => {
-      const next = applyUploads(item, queue);
-      if (next !== item) changed = true;
-      return next;
+    const out = content.map((entry) => {
+      if (!queue.length || entry === null || typeof entry !== 'object') return entry;
+      changed = true;
+      return { ...entry, [key]: queue.shift() };
     });
-    return changed ? out : node;
+    return changed ? out : content;
   }
 
-  let changed = false;
-  const out = {};
-
-  for (const [key, value] of Object.entries(node)) {
-    let next;
-
-    if (IMAGE_KEYS.has(key) && queue.length) {
-      next = queue.shift();
-    } else if (IMAGE_LIST_KEYS.has(key) && Array.isArray(value)) {
-      // Runs dry mid-list rather than all-or-nothing: the slots that got a
-      // photo take it, the rest keep whatever they had.
-      next = value.map((src) => (queue.length ? queue.shift() : src));
-    } else {
-      next = applyUploads(value, queue);
-    }
-
-    if (next !== value) changed = true;
-    out[key] = next;
+  // 'list[].key' — a named list of objects hanging off the content.
+  const nested = path.indexOf('[].');
+  if (nested > 0) {
+    const listKey = path.slice(0, nested);
+    const next = fillPath(content[listKey], `[].${path.slice(nested + 3)}`, queue);
+    return next === content[listKey] ? content : { ...content, [listKey]: next };
   }
 
-  return changed ? out : node;
+  // A plain key holding one picture.
+  return { ...content, [path]: queue.shift() };
+}
+
+/** Fill every declared slot on one section's content, in the order declared. */
+export function applyUploads(content, paths, queue) {
+  if (!paths?.length || !queue.length) return content;
+  return paths.reduce((current, path) => fillPath(current, path, queue), content);
 }
 
 /**
  * Resolve every section's content in one pass, so the queue drains down the
- * page in render order. `resolve` is how a spec finds its own slot — kept out
- * here because only the canvas knows about drafts.
+ * page in render order.
  *
- * Two rules keep the queue landing where it can actually be seen:
+ * `resolve` is how a spec finds its own content and `imagesFor` is which slots
+ * its renderer draws — both passed in because only the canvas knows about
+ * drafts and only the section registry knows about renderers.
  *
- * A section with neither a slot nor its own content falls back to the whole
- * draft — the headers and footers, which read it for the site's name. Those
- * are skipped: every one of them sits at the top of its theme, and the draft
- * they'd be handed contains every picture slot on the page, so filling there
- * would drain the queue into an object that renders no pictures at all and
- * leave the real slots below untouched. Slots belong to sections that own one.
- *
- * And two sections can share a slot — editorial points both its hero and its
- * image band at `hero`. That's one set of pictures, so it's filled once and
- * the result shared, rather than the first section quietly eating a photo the
- * second one was going to show.
+ * Sections that draw nothing are handed straight back and never recorded:
+ * editorial points both its hero and its image band at `hero`, and the hero
+ * draws no picture, so caching its no-op under that content would stop the
+ * band from ever filling. Where two sections genuinely draw the same slot the
+ * same way, the fill is shared rather than the first quietly eating a photo
+ * the second was going to show.
  */
-export function contentWithUploads(specs, resolve, uploads) {
+export function contentWithUploads(specs, resolve, imagesFor, uploads) {
   const queue = uploads ? [...uploads] : [];
   const filled = new Map();
 
   return specs.map((spec) => {
     const raw = resolve(spec);
-    if (!spec.content && !spec.slot) return raw;
-    if (filled.has(raw)) return filled.get(raw);
+    const paths = imagesFor(spec);
+    if (!paths?.length) return raw;
 
-    const next = applyUploads(raw, queue);
-    filled.set(raw, next);
-    return next;
+    const signature = paths.join('|');
+    const seen = filled.get(raw);
+    if (seen && seen.signature === signature) return seen.value;
+
+    const value = applyUploads(raw, paths, queue);
+    filled.set(raw, { signature, value });
+    return value;
   });
 }
